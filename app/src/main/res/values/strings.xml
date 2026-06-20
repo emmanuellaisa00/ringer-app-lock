@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Ringer</string>
+    <string name="locked_apps">Locked Apps</string>
+    <string name="select_apps">Select apps to lock</string>
+    <string name="settings">Settings</string>
+    <string name="enable_accessibility">Enable Accessibility Service</string>
+    <string name="accessibility_description">Ringer uses Accessibility Service to detect when locked apps are opened.</string>
+    <string name="battery_optimization">Exclude from battery optimization</string>
+    <string name="notification_permission">Allow notifications</string>
+    <string name="default_timeout">Default unlock timeout: %1$d minutes</string>
+    <string name="unlock_timeout_label">Unlock timeout (minutes)</string>
+    <string name="save">Save</string>
+    <string name="no_apps_selected">No apps locked yet. Tap + to add apps.</string>
+    <string name="service_notification">Battery optimization running</string>
+    <string name="foreground_channel_name">Protection Service</string>
+    <string name="accessibility_enabled">Accessibility Service is enabled</string>
+    <string name="accessibility_disabled">Accessibility Service is disabled</string>
+    <string name="service_running">Protection active</string>
+</resources>
