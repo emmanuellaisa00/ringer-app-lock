@@ -10,7 +10,6 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.view.View
 import android.view.accessibility.AccessibilityManager
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -79,28 +78,24 @@ class MainActivity : AppCompatActivity() {
                     binding.lockedAppsRecycler.visibility = View.GONE
                     binding.emptyState.visibility = View.VISIBLE
                     binding.lockedAppsLabel.visibility = View.GONE
+                    binding.lockedCountText.visibility = View.GONE
                 } else {
                     binding.lockedAppsRecycler.visibility = View.VISIBLE
                     binding.emptyState.visibility = View.GONE
                     binding.lockedAppsLabel.visibility = View.VISIBLE
-                    binding.statusText.text = getString(R.string.locked_count, apps.size)
+                    binding.lockedCountText.visibility = View.VISIBLE
+                    binding.lockedCountText.text = getString(R.string.locked_count, apps.size)
                 }
             }
         }
 
         lifecycleScope.launch {
             viewModel.isAccessibilityEnabled.collect { enabled ->
-                binding.statusText.text = if (enabled) {
-                    getString(R.string.accessibility_enabled)
-                } else {
-                    getString(R.string.accessibility_disabled)
-                }
-                binding.statusText.setTextColor(
-                    if (enabled)
-                        getColor(R.color.status_active)
-                    else
-                        getColor(R.color.status_inactive)
-                )
+                val text = if (enabled) getString(R.string.accessibility_enabled) else getString(R.string.accessibility_disabled)
+                val colorRes = if (enabled) R.color.status_active else R.color.status_inactive
+                binding.statusText.text = text
+                binding.statusText.setTextColor(getColor(colorRes))
+                binding.statusDot.setBackgroundColor(getColor(colorRes))
             }
         }
     }
@@ -114,16 +109,14 @@ class MainActivity : AppCompatActivity() {
         val enabled = isAccessibilityServiceEnabled()
         viewModel.updateAccessibilityStatus(enabled)
 
-        if (!enabled) {
-            Toast.makeText(this, "Please enable Accessibility Service", Toast.LENGTH_LONG).show()
-        }
-
         // Battery optimization
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !pm.isIgnoringBatteryOptimizations(packageName)) {
-            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
-            intent.data = Uri.parse("package:$packageName")
-            startActivity(intent)
+            try {
+                val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                intent.data = Uri.parse("package:$packageName")
+                startActivity(intent)
+            } catch (_: Exception) { }
         }
 
         // Notification permission (Android 13+)

@@ -37,14 +37,14 @@ class LockActivity : AppCompatActivity() {
             return
         }
 
-        // Check if already accessible (foreground or timeout unlock)
+        // If already accessible, just open it and finish
         if (repository.isAccessible(targetPackage!!)) {
             launchTargetApp()
             finish()
             return
         }
 
-        // Stealth: no UI visible, just monitor volume
+        // Monitor volume for the unlock trigger
         startVolumeMonitoring()
     }
 
@@ -56,7 +56,7 @@ class LockActivity : AppCompatActivity() {
                     onVolumeTriggered()
                     break
                 }
-                delay(300) // poll every 300ms
+                delay(250)
             }
         }
     }
@@ -64,24 +64,33 @@ class LockActivity : AppCompatActivity() {
     private fun onVolumeTriggered() {
         targetPackage?.let { pkg ->
             lifecycleScope.launch {
-                // Mark app as unlocked (sets timestamp + justUnlocked flag)
+                // Mark the app as unlocked
                 val timeoutSeconds = repository.getUnlockTimeoutSeconds()
                 repository.setUnlocked(pkg, timeoutSeconds)
 
-                // Restore volume after a brief delay
-                delay(800)
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, previousVolume, 0)
+                // Set it as foreground so the accessibility service doesn't re-lock it
+                repository.setForeground(pkg)
 
-                // Automatically launch the locked app so the user can use it
+                // Restore volume after brief delay
+                delay(600)
+                try {
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, previousVolume, 0)
+                } catch (_: Exception) {
+                    // Volume restore may fail on some devices, non-critical
+                }
+
+                // Launch the target app
                 launchTargetApp()
 
+                // Finish the lock activity
                 finish()
             }
         }
     }
 
     /**
-     * Launch the target (locked) app so the user can use it after unlocking.
+     * Launch the target locked app using its launch intent.
+     * Falls back to opening the app's settings page if no launch intent exists.
      */
     private fun launchTargetApp() {
         targetPackage?.let { pkg ->

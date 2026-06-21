@@ -5,12 +5,9 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import com.example.ringer.databinding.ActivitySettingsBinding
 import com.example.ringer.viewmodel.SettingsViewModel
-import kotlinx.coroutines.launch
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -26,15 +23,11 @@ class SettingsActivity : AppCompatActivity() {
         viewModel = SettingsViewModel(repository)
 
         setupUI()
-        observeViewModel()
     }
 
     private fun setupUI() {
-        binding.backButton.setOnClickListener {
-            finish()
-        }
+        binding.backButton.setOnClickListener { finish() }
 
-        // Build timeout chips
         setupTimeoutChips()
 
         binding.enableAccessibilityBtn.setOnClickListener {
@@ -61,20 +54,17 @@ class SettingsActivity : AppCompatActivity() {
                 isChecked = seconds == currentTimeout
                 setChipBackgroundColorResource(R.color.chip_unselected_bg)
                 setTextColor(resources.getColor(R.color.chip_unselected_text, theme))
-                chipStrokeWidth = 1f
-                setChipStrokeColorResource(R.color.border_subtle)
-                chipCornerRadius = 36f
+                chipStrokeWidth = 0f
+                chipCornerRadius = 32f
 
-                setOnCheckedChangeListener { view, isChecked ->
+                setOnCheckedChangeListener { _, isChecked ->
                     if (isChecked) {
                         setChipBackgroundColorResource(R.color.chip_selected_bg)
                         setTextColor(resources.getColor(R.color.chip_selected_text, theme))
-                        setChipStrokeColorResource(R.color.primary)
                         viewModel.setTimeoutSeconds(seconds)
                     } else {
                         setChipBackgroundColorResource(R.color.chip_unselected_bg)
                         setTextColor(resources.getColor(R.color.chip_unselected_text, theme))
-                        setChipStrokeColorResource(R.color.border_subtle)
                     }
                 }
             }
@@ -82,12 +72,21 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun observeViewModel() {
-        lifecycleScope.launch {
-            viewModel.unlockTimeoutSeconds.collect { timeout ->
-                val label = viewModel.formatTimeoutLabel(timeout)
-                Toast.makeText(this@SettingsActivity, "Re-lock: $label", Toast.LENGTH_SHORT).show()
-            }
-        }
+    override fun onResume() {
+        super.onResume()
+        // Update accessibility status dot
+        val enabled = isAccessibilityServiceEnabled()
+        binding.accessibilityStatus.text = if (enabled) getString(R.string.accessibility_enabled) else getString(R.string.accessibility_disabled)
+        val colorRes = if (enabled) R.color.status_active else R.color.status_inactive
+        binding.accessibilityStatus.setTextColor(getColor(colorRes))
+        binding.accessibilityDot.setBackgroundColor(getColor(colorRes))
+    }
+
+    private fun isAccessibilityServiceEnabled(): Boolean {
+        val am = getSystemService(ACCESSIBILITY_SERVICE) as android.view.accessibility.AccessibilityManager
+        val enabledServices = am.getEnabledAccessibilityServiceList(
+            android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_ALL_MASK
+        )
+        return enabledServices.any { it.id.contains(packageName) }
     }
 }

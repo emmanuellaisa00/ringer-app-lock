@@ -8,10 +8,15 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.ringer.databinding.ItemAppPickerBinding
 
 class AppPickerAdapter(
-    private val apps: List<ApplicationInfo>,
+    private var apps: List<ApplicationInfo>,
     private val pm: PackageManager,
     private val onAppSelected: (ApplicationInfo) -> Unit
 ) : RecyclerView.Adapter<AppPickerAdapter.ViewHolder>() {
+
+    fun updateApps(newApps: List<ApplicationInfo>) {
+        apps = newApps
+        notifyDataSetChanged()
+    }
 
     inner class ViewHolder(private val binding: ItemAppPickerBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(app: ApplicationInfo) {
@@ -24,19 +29,8 @@ class AppPickerAdapter(
                 binding.appIcon.setImageResource(android.R.drawable.sym_def_app_icon)
             }
 
-            // iOS-like smooth interaction
             binding.root.setOnClickListener {
-                binding.root.animate()
-                    .scaleX(0.93f).scaleY(0.93f)
-                    .setDuration(70)
-                    .withEndAction {
-                        binding.root.animate()
-                            .scaleX(1f).scaleY(1f)
-                            .setDuration(160)
-                            .start()
-                        onAppSelected(app)
-                    }
-                    .start()
+                onAppSelected(app)
             }
         }
     }

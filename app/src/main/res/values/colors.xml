@@ -1,41 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Modern dark palette -->
-    <color name="surface_dark">#0D0D1A</color>
-    <color name="surface_card">#151528</color>
-    <color name="surface_elevated">#1C1C36</color>
+    <!-- Deep dark surface layers – Android 17 Material You -->
+    <color name="surface_dark">#0E0E1C</color>
+    <color name="surface_card">#171729</color>
+    <color name="surface_elevated">#1E1E38</color>
+    <color name="surface_search">#1A1A30</color>
 
-    <!-- Primary accent – cool indigo -->
-    <color name="primary">#818CF8</color>
+    <!-- Primary – vibrant indigo -->
+    <color name="primary">#8B8DF8</color>
     <color name="primary_variant">#6366F1</color>
-    <color name="primary_muted">#4338CA40</color>
+    <color name="primary_container">#2D2D5E</color>
 
-    <!-- Accent highlight -->
+    <!-- Accent -->
     <color name="accent_cyan">#67E8F9</color>
     <color name="accent_emerald">#34D399</color>
 
-    <!-- Borders & overlays -->
-    <color name="border_subtle">#FFFFFF1A</color>
-    <color name="border_medium">#FFFFFF33</color>
-    <color name="overlay_10">#FFFFFF1A</color>
+    <!-- Borders -->
+    <color name="border_subtle">#1FFFFFFF</color>
+    <color name="border_medium">#33FFFFFF</color>
 
-    <!-- Text -->
-    <color name="text_primary">#F1F1F6</color>
-    <color name="text_secondary">#9394A5</color>
-    <color name="text_hint">#5C5D72</color>
+    <!-- Text hierarchy -->
+    <color name="text_primary">#EDEDF4</color>
+    <color name="text_secondary">#8E8FA3</color>
+    <color name="text_hint">#52536B</color>
 
-    <!-- Chip states -->
+    <!-- Chip -->
     <color name="chip_selected_bg">#6366F1</color>
-    <color name="chip_unselected_bg">#1C1C36</color>
+    <color name="chip_unselected_bg">#1E1E38</color>
     <color name="chip_selected_text">#FFFFFF</color>
-    <color name="chip_unselected_text">#9394A5</color>
+    <color name="chip_unselected_text">#8E8FA3</color>
 
     <!-- Status -->
-    <color name="status_active">#34D399</color>
-    <color name="status_inactive">#EF4444</color>
+    <color name="status_active">#4ADE80</color>
+    <color name="status_inactive">#F87171</color>
 
-    <!-- Danger / remove -->
-    <color name="danger">#F87171</color>
+    <!-- Danger -->
+    <color name="danger">#FB7185</color>
+
+    <!-- Search bar -->
+    <color name="search_bar_bg">#1E1E38</color>
+    <color name="search_bar_hint">#52536B</color>
+    <color name="search_divider">#1AFFFFFF</color>
+
+    <!-- Icon tint -->
+    <color name="icon_tint">#A0A1B5</color>
 
     <!-- White / Black -->
     <color name="white">#FFFFFF</color>
