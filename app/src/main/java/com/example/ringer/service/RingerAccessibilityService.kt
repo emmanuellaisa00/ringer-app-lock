@@ -9,11 +9,16 @@ import android.view.accessibility.AccessibilityEvent
 import com.example.ringer.LockActivity
 import com.example.ringer.RingerApplication
 import com.example.ringer.data.LockRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class RingerAccessibilityService : AccessibilityService() {
 
     private lateinit var repository: LockRepository
     private var lastPackage: String? = null
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -38,19 +43,21 @@ class RingerAccessibilityService : AccessibilityService() {
         lastPackage = packageName
 
         // Check if package is locked
-        val isLocked = repository.getLockedApp(packageName) != null &&
-                !repository.isUnlocked(packageName)
+        serviceScope.launch {
+            val isLocked = repository.getLockedApp(packageName) != null &&
+                    !repository.isUnlocked(packageName)
 
-        if (isLocked) {
-            // Immediately minimize
-            performGlobalAction(GLOBAL_ACTION_HOME)
+            if (isLocked) {
+                // Immediately minimize
+                performGlobalAction(GLOBAL_ACTION_HOME)
 
-            // Launch lock screen (invisible to intruder)
-            val intent = Intent(this, LockActivity::class.java).apply {
-                putExtra("target_package", packageName)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                // Launch lock screen (invisible to intruder)
+                val intent = Intent(this@RingerAccessibilityService, LockActivity::class.java).apply {
+                    putExtra("target_package", packageName)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                }
+                startActivity(intent)
             }
-            startActivity(intent)
         }
     }
 

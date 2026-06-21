@@ -35,4 +35,14 @@ dependencies {
     // Room (required by code)
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
+
+    // DataStore Preferences (required by LockRepository)
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // Lifecycle ViewModel KTX (provides viewModelScope)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 }
