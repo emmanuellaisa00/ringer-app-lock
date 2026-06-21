@@ -2,9 +2,7 @@ package com.example.ringer.service
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
-import android.content.Context
 import android.content.Intent
-import android.provider.Settings
 import android.view.accessibility.AccessibilityEvent
 import com.example.ringer.LockActivity
 import com.example.ringer.RingerApplication
@@ -19,6 +17,15 @@ class RingerAccessibilityService : AccessibilityService() {
     private lateinit var repository: LockRepository
     private var lastPackage: String? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    /** System packages that are overlays/dialogs — switching to these does NOT mean the user left the app. */
+    private val systemOverlayPrefixes = listOf(
+        "com.android.systemui",
+        "com.android.internal",
+        "com.google.android.permissioncontroller",
+        "com.android.permissioncontroller",
+        "com.android.packageinstaller"
+    )
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -36,22 +43,42 @@ class RingerAccessibilityService : AccessibilityService() {
         if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
 
         val packageName = event.packageName?.toString() ?: return
-        if (packageName == lastPackage || packageName == this.packageName) {
+
+        // Ignore our own app's activities (LockActivity, MainActivity, etc.)
+        if (packageName == this.packageName) {
             lastPackage = packageName
             return
         }
+
+        val previousPackage = lastPackage
         lastPackage = packageName
 
-        // Check if package is locked
-        serviceScope.launch {
-            val isLocked = repository.getLockedApp(packageName) != null &&
-                    !repository.isUnlocked(packageName)
+        // Same package as before (e.g. navigating within the same app) — no action needed
+        if (packageName == previousPackage) return
 
-            if (isLocked) {
-                // Immediately minimize
+        // When user switches away from a foreground-unlocked app to a REAL app
+        // (not a system overlay like notification shade or dialog), clear the foreground status.
+        // This means: the user intentionally left the locked app, so the timeout now matters.
+        if (previousPackage != null && !isSystemOverlay(packageName)) {
+            repository.clearForeground(previousPackage)
+        }
+
+        // Check if the new package is a locked app
+        serviceScope.launch {
+            val lockedApp = repository.getLockedApp(packageName) ?: return@launch
+
+            // Guard: if user already moved on by the time coroutine runs, skip
+            if (lastPackage != packageName) return@launch
+
+            if (repository.isAccessible(packageName)) {
+                // App is accessible — user is allowed in.
+                // Set foreground so they stay in until they explicitly leave.
+                repository.setForeground(packageName)
+            } else {
+                // App is locked and not accessible — close it immediately.
                 performGlobalAction(GLOBAL_ACTION_HOME)
 
-                // Launch lock screen (invisible to intruder)
+                // Launch LockActivity to monitor for volume trigger
                 val intent = Intent(this@RingerAccessibilityService, LockActivity::class.java).apply {
                     putExtra("target_package", packageName)
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -59,6 +86,14 @@ class RingerAccessibilityService : AccessibilityService() {
                 startActivity(intent)
             }
         }
+    }
+
+    /**
+     * Returns true if the package is a system overlay (notification shade, permission dialog, etc.)
+     * Switching to a system overlay does NOT mean the user left the previous app.
+     */
+    private fun isSystemOverlay(pkg: String): Boolean {
+        return systemOverlayPrefixes.any { pkg.startsWith(it) }
     }
 
     override fun onInterrupt() {

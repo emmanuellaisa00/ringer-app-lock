@@ -36,13 +36,14 @@ class LockActivity : AppCompatActivity() {
             return
         }
 
-        // Check if already unlocked
-        if (repository.isUnlocked(targetPackage!!)) {
+        // Check if already accessible (foreground or timeout unlock)
+        if (repository.isAccessible(targetPackage!!)) {
+            launchTargetApp()
             finish()
             return
         }
 
-        // Stealth: no UI visible, just monitor
+        // Stealth: no UI visible, just monitor volume
         startVolumeMonitoring()
     }
 
@@ -51,7 +52,7 @@ class LockActivity : AppCompatActivity() {
             while (isActive) {
                 val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
                 if (currentVolume >= maxVolume) {
-                    unlockApp()
+                    onVolumeTriggered()
                     break
                 }
                 delay(300) // poll every 300ms
@@ -59,18 +60,37 @@ class LockActivity : AppCompatActivity() {
         }
     }
 
-    private fun unlockApp() {
+    private fun onVolumeTriggered() {
         targetPackage?.let { pkg ->
             lifecycleScope.launch {
+                // Mark app as unlocked (sets timestamp + justUnlocked flag)
                 val timeoutSeconds = repository.getUnlockTimeoutSeconds()
                 repository.setUnlocked(pkg, timeoutSeconds)
 
-                // Restore volume after 1 second
-                delay(1000)
+                // Restore volume after a brief delay
+                delay(800)
                 audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, previousVolume, 0)
 
-                // Finish lock activity so the app can open
+                // Automatically launch the locked app so the user can use it
+                launchTargetApp()
+
                 finish()
+            }
+        }
+    }
+
+    /**
+     * Launch the target (locked) app so the user can use it after unlocking.
+     */
+    private fun launchTargetApp() {
+        targetPackage?.let { pkg ->
+            val launchIntent = packageManager.getLaunchIntentForPackage(pkg)
+            if (launchIntent != null) {
+                launchIntent.addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+                )
+                startActivity(launchIntent)
             }
         }
     }

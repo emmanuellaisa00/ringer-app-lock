@@ -18,7 +18,7 @@ class LockViewModel(private val repository: LockRepository) : ViewModel() {
 
     fun setTargetPackage(packageName: String) {
         targetPackage = packageName
-        _isUnlocked.value = repository.isUnlocked(packageName)
+        _isUnlocked.value = repository.isAccessible(packageName)
     }
 
     fun unlockWithVolume(packageName: String, previousVolume: Int, maxVolume: Int) {
@@ -34,6 +34,6 @@ class LockViewModel(private val repository: LockRepository) : ViewModel() {
     }
 
     fun checkUnlockStatus(packageName: String): Boolean {
-        return repository.isUnlocked(packageName)
+        return repository.isAccessible(packageName)
     }
 }
