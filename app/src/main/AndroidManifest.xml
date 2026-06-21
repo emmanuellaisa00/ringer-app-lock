@@ -39,6 +39,11 @@
             android:noHistory="true" />
 
         <activity
+            android:name=".AppSelectionActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Ringer" />
+
+        <activity
             android:name=".SettingsActivity"
             android:exported="false"
             android:label="Settings" />

@@ -2,13 +2,8 @@ package com.example.ringer.data
 
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.datastore.preferences.core.*
-import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import java.util.concurrent.TimeUnit
-
-private val Context.dataStore by preferencesDataStore(name = "ringer_prefs")
 
 class LockRepository(
     private val appDao: AppDao,

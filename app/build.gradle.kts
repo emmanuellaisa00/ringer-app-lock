@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.kapt")
 }
 
 android {
@@ -35,9 +36,7 @@ dependencies {
     // Room (required by code)
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
-
-    // DataStore Preferences (required by LockRepository)
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    kapt("androidx.room:room-compiler:2.6.1")
 
     // Lifecycle ViewModel KTX (provides viewModelScope)
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
@@ -45,4 +44,12 @@ dependencies {
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // ConstraintLayout (used in XML layouts)
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+
+    // AppCompat
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.activity:activity-ktx:1.8.2")
 }
