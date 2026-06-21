@@ -8,13 +8,21 @@
     <string name="accessibility_description">Ringer uses Accessibility Service to detect when locked apps are opened.</string>
     <string name="battery_optimization">Exclude from battery optimization</string>
     <string name="notification_permission">Allow notifications</string>
-    <string name="default_timeout">Default unlock timeout: %1$d minutes</string>
-    <string name="unlock_timeout_label">Unlock timeout (minutes)</string>
+    <string name="unlock_timeout_label">Re-lock timeout</string>
+    <string name="timeout_immediately">Immediately</string>
+    <string name="timeout_30s">30 sec</string>
+    <string name="timeout_60s">1 min</string>
+    <string name="timeout_120s">2 min</string>
+    <string name="timeout_300s">5 min</string>
+    <string name="timeout_description">How long the app stays unlocked after the volume trigger</string>
     <string name="save">Save</string>
     <string name="no_apps_selected">No apps locked yet. Tap + to add apps.</string>
-    <string name="service_notification">Battery optimization running</string>
+    <string name="service_notification">Protection active</string>
     <string name="foreground_channel_name">Protection Service</string>
     <string name="accessibility_enabled">Accessibility Service is enabled</string>
     <string name="accessibility_disabled">Accessibility Service is disabled</string>
     <string name="service_running">Protection active</string>
+    <string name="timeout_saved">Timeout saved</string>
+    <string name="protection_status">Protection Status</string>
+    <string name="locked_count">%1$d apps locked</string>
 </resources>

@@ -3,15 +3,14 @@ package com.example.ringer.data
 import android.content.Context
 import android.content.SharedPreferences
 import kotlinx.coroutines.flow.Flow
-import java.util.concurrent.TimeUnit
 
 class LockRepository(
     private val appDao: AppDao,
     private val context: Context
 ) {
     private val prefs: SharedPreferences = context.getSharedPreferences("ringer_lock", Context.MODE_PRIVATE)
-    private val UNLOCK_TIMEOUT_KEY = "unlock_timeout_minutes"
-    private val DEFAULT_TIMEOUT = 1 // minutes as per user preference
+    private val UNLOCK_TIMEOUT_KEY = "unlock_timeout_seconds"
+    private val DEFAULT_TIMEOUT_SECONDS = 0 // 0 = immediately
 
     val lockedAppsFlow: Flow<List<AppInfo>> = appDao.getAllLockedApps()
 
@@ -27,8 +26,16 @@ class LockRepository(
         return appDao.getAppByPackage(packageName)
     }
 
-    suspend fun setUnlocked(packageName: String, timeoutMinutes: Int = getUnlockTimeout()) {
-        val unlockTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(timeoutMinutes.toLong())
+    /**
+     * @param timeoutSeconds How long the app stays unlocked. 0 = immediately re-locks.
+     */
+    suspend fun setUnlocked(packageName: String, timeoutSeconds: Int = getUnlockTimeoutSeconds()) {
+        val unlockTime = if (timeoutSeconds == 0) {
+            // Immediately: set to current time so it's already expired
+            System.currentTimeMillis() - 1
+        } else {
+            System.currentTimeMillis() + (timeoutSeconds * 1000L)
+        }
         prefs.edit()
             .putLong("unlock_${packageName}", unlockTime)
             .apply()
@@ -43,17 +50,16 @@ class LockRepository(
         prefs.edit().remove("unlock_${packageName}").apply()
     }
 
-    fun getUnlockTimeout(): Int {
-        return prefs.getInt(UNLOCK_TIMEOUT_KEY, DEFAULT_TIMEOUT)
+    fun getUnlockTimeoutSeconds(): Int {
+        return prefs.getInt(UNLOCK_TIMEOUT_KEY, DEFAULT_TIMEOUT_SECONDS)
     }
 
-    suspend fun setUnlockTimeout(minutes: Int) {
-        prefs.edit().putInt(UNLOCK_TIMEOUT_KEY, minutes).apply()
+    suspend fun setUnlockTimeoutSeconds(seconds: Int) {
+        prefs.edit().putInt(UNLOCK_TIMEOUT_KEY, seconds).apply()
     }
 
     // For StateFlow in ViewModel
     fun getUnlockTimeFlow(packageName: String): Flow<Long> {
-        // Simple polling approach using SharedPreferences listener could be used but this works
         return kotlinx.coroutines.flow.flow {
             while (true) {
                 emit(prefs.getLong("unlock_${packageName}", 0L))

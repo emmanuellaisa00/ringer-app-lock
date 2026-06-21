@@ -48,6 +48,9 @@ dependencies {
     // ConstraintLayout (used in XML layouts)
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 
+    // CoordinatorLayout (used for FAB in main activity)
+    implementation("androidx.coordinatorlayout:coordinatorlayout:1.2.0")
+
     // AppCompat
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.core:core-ktx:1.12.0")

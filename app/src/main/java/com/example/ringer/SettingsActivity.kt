@@ -1,11 +1,9 @@
 package com.example.ringer
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.PowerManager
 import android.provider.Settings
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -32,17 +30,15 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        binding.timeoutInput.setText(viewModel.getCurrentTimeout().toString())
-
-        binding.saveButton.setOnClickListener {
-            val minutes = binding.timeoutInput.text.toString().toIntOrNull() ?: 1
-            viewModel.setUnlockTimeout(minutes)
-            Toast.makeText(this, "Timeout saved", Toast.LENGTH_SHORT).show()
+        binding.backButton.setOnClickListener {
+            finish()
         }
 
+        // Build timeout chips
+        setupTimeoutChips()
+
         binding.enableAccessibilityBtn.setOnClickListener {
-            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-            startActivity(intent)
+            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         }
 
         binding.disableBatteryBtn.setOnClickListener {
@@ -54,10 +50,43 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupTimeoutChips() {
+        val chipGroup = binding.timeoutChipGroup
+        val currentTimeout = viewModel.getCurrentTimeoutSeconds()
+
+        for (seconds in viewModel.timeoutOptions) {
+            val chip = com.google.android.material.chip.Chip(this).apply {
+                text = viewModel.formatTimeoutLabel(seconds)
+                isCheckable = true
+                isChecked = seconds == currentTimeout
+                setChipBackgroundColorResource(R.color.chip_unselected_bg)
+                setTextColor(resources.getColor(R.color.chip_unselected_text, theme))
+                chipStrokeWidth = 1f
+                setChipStrokeColorResource(R.color.border_subtle)
+                chipCornerRadius = 36f
+
+                setOnCheckedChangeListener { view, isChecked ->
+                    if (isChecked) {
+                        setChipBackgroundColorResource(R.color.chip_selected_bg)
+                        setTextColor(resources.getColor(R.color.chip_selected_text, theme))
+                        setChipStrokeColorResource(R.color.primary)
+                        viewModel.setTimeoutSeconds(seconds)
+                    } else {
+                        setChipBackgroundColorResource(R.color.chip_unselected_bg)
+                        setTextColor(resources.getColor(R.color.chip_unselected_text, theme))
+                        setChipStrokeColorResource(R.color.border_subtle)
+                    }
+                }
+            }
+            chipGroup.addView(chip)
+        }
+    }
+
     private fun observeViewModel() {
         lifecycleScope.launch {
-            viewModel.unlockTimeout.collect { timeout ->
-                binding.timeoutInput.setText(timeout.toString())
+            viewModel.unlockTimeoutSeconds.collect { timeout ->
+                val label = viewModel.formatTimeoutLabel(timeout)
+                Toast.makeText(this@SettingsActivity, "Re-lock: $label", Toast.LENGTH_SHORT).show()
             }
         }
     }

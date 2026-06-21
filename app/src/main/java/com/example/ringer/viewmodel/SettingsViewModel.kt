@@ -10,15 +10,30 @@ import kotlinx.coroutines.launch
 
 class SettingsViewModel(private val repository: LockRepository) : ViewModel() {
 
-    private val _unlockTimeout = MutableStateFlow(repository.getUnlockTimeout())
-    val unlockTimeout: StateFlow<Int> = _unlockTimeout.asStateFlow()
+    /** Timeout in seconds. 0 = immediately. */
+    private val _unlockTimeoutSeconds = MutableStateFlow(repository.getUnlockTimeoutSeconds())
+    val unlockTimeoutSeconds: StateFlow<Int> = _unlockTimeoutSeconds.asStateFlow()
 
-    fun setUnlockTimeout(minutes: Int) {
+    /** Available timeout options in seconds */
+    val timeoutOptions: List<Int> = listOf(0, 30, 60, 120, 300)
+
+    fun setTimeoutSeconds(seconds: Int) {
         viewModelScope.launch {
-            repository.setUnlockTimeout(minutes)
-            _unlockTimeout.value = minutes
+            repository.setUnlockTimeoutSeconds(seconds)
+            _unlockTimeoutSeconds.value = seconds
         }
     }
 
-    fun getCurrentTimeout(): Int = repository.getUnlockTimeout()
+    fun getCurrentTimeoutSeconds(): Int = repository.getUnlockTimeoutSeconds()
+
+    fun formatTimeoutLabel(seconds: Int): String {
+        return when (seconds) {
+            0 -> "Immediately"
+            30 -> "30 sec"
+            60 -> "1 min"
+            120 -> "2 min"
+            300 -> "5 min"
+            else -> if (seconds < 60) "$seconds sec" else "${seconds / 60} min"
+        }
+    }
 }

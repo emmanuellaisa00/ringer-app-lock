@@ -23,12 +23,11 @@ class LockViewModel(private val repository: LockRepository) : ViewModel() {
 
     fun unlockWithVolume(packageName: String, previousVolume: Int, maxVolume: Int) {
         viewModelScope.launch {
-            val timeout = repository.getUnlockTimeout()
-            repository.setUnlocked(packageName, timeout)
+            val timeoutSeconds = repository.getUnlockTimeoutSeconds()
+            repository.setUnlocked(packageName, timeoutSeconds)
 
-            // Simulate restore previous volume after 1 second
+            // Restore previous volume after 1 second
             delay(1000)
-            // Note: Volume restore logic is handled in service
 
             _isUnlocked.value = true
         }

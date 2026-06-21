@@ -35,5 +35,5 @@ class MainViewModel(private val repository: LockRepository) : ViewModel() {
         _isAccessibilityEnabled.value = enabled
     }
 
-    fun getUnlockTimeout(): Int = repository.getUnlockTimeout()
+    fun getUnlockTimeoutSeconds(): Int = repository.getUnlockTimeoutSeconds()
 }

@@ -1,16 +1,14 @@
 package com.example.ringer
 
 import android.accessibilityservice.AccessibilityServiceInfo
-import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ApplicationInfo
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
+import android.view.View
 import android.view.accessibility.AccessibilityManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -46,10 +44,6 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Make the toolbar transparent for glass effect
-        window.statusBarColor = android.graphics.Color.TRANSPARENT
-        window.navigationBarColor = android.graphics.Color.TRANSPARENT
-
         val repository = (application as RingerApplication).repository
         viewModel = MainViewModel(repository)
 
@@ -65,40 +59,14 @@ class MainActivity : AppCompatActivity() {
         }
         binding.lockedAppsRecycler.layoutManager = LinearLayoutManager(this)
         binding.lockedAppsRecycler.adapter = adapter
-
-        // Show empty state initially
-        binding.emptyState.visibility = android.view.View.VISIBLE
-        binding.lockedAppsRecycler.visibility = android.view.View.GONE
     }
 
     private fun setupListeners() {
         binding.addButton.setOnClickListener {
-            // iOS-like bounce animation
-            binding.addButton.animate()
-                .scaleX(0.75f).scaleY(0.75f)
-                .setDuration(80)
-                .withEndAction {
-                    binding.addButton.animate()
-                        .scaleX(1f).scaleY(1f)
-                        .setDuration(160)
-                        .start()
-                }
-                .start()
             launchAppPicker()
         }
 
         binding.settingsButton.setOnClickListener {
-            // Smooth press animation
-            binding.settingsButton.animate()
-                .scaleX(0.85f).scaleY(0.85f)
-                .setDuration(70)
-                .withEndAction {
-                    binding.settingsButton.animate()
-                        .scaleX(1f).scaleY(1f)
-                        .setDuration(140)
-                        .start()
-                }
-                .start()
             startActivity(Intent(this, SettingsActivity::class.java))
         }
     }
@@ -108,12 +76,14 @@ class MainActivity : AppCompatActivity() {
             viewModel.lockedApps.collect { apps ->
                 adapter.submitList(apps)
                 if (apps.isEmpty()) {
-                    binding.emptyState.visibility = android.view.View.VISIBLE
-                    binding.lockedAppsRecycler.visibility = android.view.View.GONE
+                    binding.lockedAppsRecycler.visibility = View.GONE
+                    binding.emptyState.visibility = View.VISIBLE
+                    binding.lockedAppsLabel.visibility = View.GONE
                 } else {
-                    binding.emptyState.visibility = android.view.View.GONE
-                    binding.lockedAppsRecycler.visibility = android.view.View.VISIBLE
-                    binding.statusText.text = "${apps.size} apps locked"
+                    binding.lockedAppsRecycler.visibility = View.VISIBLE
+                    binding.emptyState.visibility = View.GONE
+                    binding.lockedAppsLabel.visibility = View.VISIBLE
+                    binding.statusText.text = getString(R.string.locked_count, apps.size)
                 }
             }
         }
@@ -125,6 +95,12 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     getString(R.string.accessibility_disabled)
                 }
+                binding.statusText.setTextColor(
+                    if (enabled)
+                        getColor(R.color.status_active)
+                    else
+                        getColor(R.color.status_inactive)
+                )
             }
         }
     }
@@ -135,7 +111,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkPermissionsAndStartService() {
-        // Check accessibility
         val enabled = isAccessibilityServiceEnabled()
         viewModel.updateAccessibilityStatus(enabled)
 

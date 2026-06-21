@@ -1,19 +1,15 @@
 package com.example.ringer
 
 import android.content.Context
-import android.content.Intent
 import android.media.AudioManager
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.ringer.data.LockRepository
-import com.example.ringer.service.RingerForegroundService
-import com.example.ringer.viewmodel.LockViewModel
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class LockActivity : AppCompatActivity() {
 
@@ -65,9 +61,9 @@ class LockActivity : AppCompatActivity() {
 
     private fun unlockApp() {
         targetPackage?.let { pkg ->
-            // Set unlock state
             lifecycleScope.launch {
-                repository.setUnlocked(pkg, repository.getUnlockTimeout())
+                val timeoutSeconds = repository.getUnlockTimeoutSeconds()
+                repository.setUnlocked(pkg, timeoutSeconds)
 
                 // Restore volume after 1 second
                 delay(1000)

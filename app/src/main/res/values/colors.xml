@@ -1,23 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Glassmorphism palette -->
-    <color name="glass_background">#0F0F23</color>
-    <color name="glass_surface">#1A1A2E</color>
-    <color name="glass_surface_variant">#16213E</color>
-    <color name="glass_primary">#6366F1</color>
-    <color name="glass_primary_variant">#4F46E5</color>
-    <color name="glass_border">#FFFFFF33</color>
-    <color name="glass_accent">#A5B4FC</color>
+    <!-- Modern dark palette -->
+    <color name="surface_dark">#0D0D1A</color>
+    <color name="surface_card">#151528</color>
+    <color name="surface_elevated">#1C1C36</color>
+
+    <!-- Primary accent – cool indigo -->
+    <color name="primary">#818CF8</color>
+    <color name="primary_variant">#6366F1</color>
+    <color name="primary_muted">#4338CA40</color>
+
+    <!-- Accent highlight -->
+    <color name="accent_cyan">#67E8F9</color>
+    <color name="accent_emerald">#34D399</color>
+
+    <!-- Borders & overlays -->
+    <color name="border_subtle">#FFFFFF1A</color>
+    <color name="border_medium">#FFFFFF33</color>
+    <color name="overlay_10">#FFFFFF1A</color>
 
     <!-- Text -->
-    <color name="white">#FFFFFF</color>
-    <color name="text_secondary">#B3B3C2</color>
+    <color name="text_primary">#F1F1F6</color>
+    <color name="text_secondary">#9394A5</color>
+    <color name="text_hint">#5C5D72</color>
 
-    <!-- Legacy colors (kept for compatibility) -->
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <!-- Chip states -->
+    <color name="chip_selected_bg">#6366F1</color>
+    <color name="chip_unselected_bg">#1C1C36</color>
+    <color name="chip_selected_text">#FFFFFF</color>
+    <color name="chip_unselected_text">#9394A5</color>
+
+    <!-- Status -->
+    <color name="status_active">#34D399</color>
+    <color name="status_inactive">#EF4444</color>
+
+    <!-- Danger / remove -->
+    <color name="danger">#F87171</color>
+
+    <!-- White / Black -->
+    <color name="white">#FFFFFF</color>
     <color name="black">#FF000000</color>
 </resources>
