@@ -31,4 +31,8 @@ android {
 
 dependencies {
     implementation("com.google.android.material:material:1.11.0")
+    
+    // Room (required by code)
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
 }
