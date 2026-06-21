@@ -10,6 +10,7 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.view.View
 import android.view.accessibility.AccessibilityManager
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -34,6 +35,7 @@ class MainActivity : AppCompatActivity() {
             val name = result.data?.getStringExtra("selected_name")
             if (pkg != null && name != null) {
                 viewModel.addApp(AppInfo(pkg, name))
+                Toast.makeText(this, "$name locked", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -109,15 +111,19 @@ class MainActivity : AppCompatActivity() {
         val enabled = isAccessibilityServiceEnabled()
         viewModel.updateAccessibilityStatus(enabled)
 
+        if (!enabled) {
+            Toast.makeText(this, "Enable Accessibility Service in Settings to lock apps", Toast.LENGTH_LONG).show()
+        }
+
         // Battery optimization
-        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !pm.isIgnoringBatteryOptimizations(packageName)) {
-            try {
+        try {
+            val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !pm.isIgnoringBatteryOptimizations(packageName)) {
                 val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
                 intent.data = Uri.parse("package:$packageName")
                 startActivity(intent)
-            } catch (_: Exception) { }
-        }
+            }
+        } catch (_: Exception) { }
 
         // Notification permission (Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -125,6 +131,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Start foreground service
+        startProtectionService()
+    }
+
+    private fun startProtectionService() {
         val serviceIntent = Intent(this, RingerForegroundService::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(serviceIntent)

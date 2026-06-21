@@ -12,11 +12,11 @@ class LockRepository(
     private val UNLOCK_TIMEOUT_KEY = "unlock_timeout_seconds"
     private val DEFAULT_TIMEOUT_SECONDS = 0 // 0 = immediately
 
-    /** Apps the user is currently actively using (in foreground). Stays until they leave the app. */
-    private val foregroundUnlockedPackages = mutableSetOf<String>()
+    /** Apps the user is currently actively using (in foreground). */
+    private val foregroundUnlocked = mutableSetOf<String>()
 
-    /** Apps that were just unlocked via volume trigger. One-time pass to enter the app. */
-    private val justUnlockedPackages = mutableSetOf<String>()
+    /** Apps just unlocked via volume trigger — one-time pass to enter. */
+    private val justUnlocked = mutableSetOf<String>()
 
     val lockedAppsFlow: Flow<List<AppInfo>> = appDao.getAllLockedApps()
 
@@ -26,6 +26,8 @@ class LockRepository(
 
     suspend fun removeLockedApp(packageName: String) {
         appDao.deleteByPackage(packageName)
+        // Clean up any unlock state
+        clearAllUnlockState(packageName)
     }
 
     suspend fun getLockedApp(packageName: String): AppInfo? {
@@ -33,69 +35,71 @@ class LockRepository(
     }
 
     /**
-     * Mark an app as unlocked after the volume condition is met.
-     * @param timeoutSeconds How long the app stays unlocked after the user LEAVES it.
-     *                       0 = immediately re-locks once user exits the app.
+     * Mark an app as unlocked after volume trigger.
+     * @param timeoutSeconds 0 = immediately re-lock once user exits.
      */
     suspend fun setUnlocked(packageName: String, timeoutSeconds: Int = getUnlockTimeoutSeconds()) {
         val unlockTime = if (timeoutSeconds == 0) {
-            // For "Immediately": timestamp is already expired.
-            // The justUnlocked + foreground sets handle the actual accessibility.
+            // Immediately: expired timestamp; foreground set handles accessibility
             System.currentTimeMillis() - 1
         } else {
             System.currentTimeMillis() + (timeoutSeconds * 1000L)
         }
         prefs.edit()
-            .putLong("unlock_${packageName}", unlockTime)
+            .putLong("unlock_$packageName", unlockTime)
             .apply()
 
-        // Mark as just-unlocked so the accessibility service grants one-time entry
-        justUnlockedPackages.add(packageName)
+        justUnlocked.add(packageName)
     }
 
     /**
-     * Check if the app is currently accessible (user can use it freely).
-     * Returns true if:
-     * 1. The user is currently in the app (foreground unlocked), OR
-     * 2. The app was just unlocked via volume (one-time entry), OR
-     * 3. The timestamp-based unlock is still valid (within timeout)
+     * Can the user access this locked app right now?
+     * True if: foreground-unlocked OR just-unlocked OR timestamp still valid.
      */
     fun isAccessible(packageName: String): Boolean {
-        if (foregroundUnlockedPackages.contains(packageName)) return true
-        if (justUnlockedPackages.contains(packageName)) return true
-        return isUnlocked(packageName)
+        if (foregroundUnlocked.contains(packageName)) return true
+        if (justUnlocked.contains(packageName)) return true
+        return isTimestampUnlocked(packageName)
     }
 
-    /**
-     * Pure timestamp-based unlock check.
-     */
-    fun isUnlocked(packageName: String): Boolean {
-        val unlockTime = prefs.getLong("unlock_${packageName}", 0L)
+    /** Is this app currently in the foreground-unlocked state? */
+    fun isForegroundUnlocked(packageName: String): Boolean {
+        return foregroundUnlocked.contains(packageName)
+    }
+
+    /** Timestamp-based unlock check. */
+    private fun isTimestampUnlocked(packageName: String): Boolean {
+        val unlockTime = prefs.getLong("unlock_$packageName", 0L)
         return System.currentTimeMillis() < unlockTime
     }
 
     /**
-     * Mark an app as currently in the foreground and being used by the user.
-     * Called by the accessibility service when it detects the user entering an accessible locked app.
+     * Mark an app as currently in the foreground.
+     * The user will NOT be kicked out while this is set.
      */
     fun setForeground(packageName: String) {
-        foregroundUnlockedPackages.add(packageName)
-        // Clear the just-unlocked flag since the user has entered the app
-        justUnlockedPackages.remove(packageName)
+        foregroundUnlocked.add(packageName)
+        justUnlocked.remove(packageName) // no longer needs one-time pass
     }
 
     /**
-     * Clear the foreground status when the user leaves the locked app.
-     * After this, the timestamp-based timeout determines if they can re-enter.
+     * Clear foreground when the user intentionally leaves the app.
+     * After this, timestamp-based timeout determines re-entry.
      */
     fun clearForeground(packageName: String) {
-        foregroundUnlockedPackages.remove(packageName)
+        foregroundUnlocked.remove(packageName)
     }
 
-    suspend fun clearUnlock(packageName: String) {
-        prefs.edit().remove("unlock_${packageName}").apply()
-        foregroundUnlockedPackages.remove(packageName)
-        justUnlockedPackages.remove(packageName)
+    /** Clear all unlock state for a package. */
+    private fun clearAllUnlockState(packageName: String) {
+        prefs.edit().remove("unlock_$packageName").apply()
+        foregroundUnlocked.remove(packageName)
+        justUnlocked.remove(packageName)
+    }
+
+    /** Clear the just-unlocked flag (after it's been consumed). */
+    fun consumeJustUnlocked(packageName: String) {
+        justUnlocked.remove(packageName)
     }
 
     fun getUnlockTimeoutSeconds(): Int {
@@ -106,11 +110,10 @@ class LockRepository(
         prefs.edit().putInt(UNLOCK_TIMEOUT_KEY, seconds).apply()
     }
 
-    // For StateFlow in ViewModel
     fun getUnlockTimeFlow(packageName: String): Flow<Long> {
         return kotlinx.coroutines.flow.flow {
             while (true) {
-                emit(prefs.getLong("unlock_${packageName}", 0L))
+                emit(prefs.getLong("unlock_$packageName", 0L))
                 kotlinx.coroutines.delay(1000)
             }
         }

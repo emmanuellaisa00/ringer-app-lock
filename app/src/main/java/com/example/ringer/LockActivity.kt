@@ -6,7 +6,6 @@ import android.media.AudioManager
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.ringer.data.LockRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.delay
@@ -14,12 +13,13 @@ import kotlinx.coroutines.launch
 
 class LockActivity : AppCompatActivity() {
 
-    private lateinit var repository: LockRepository
+    private lateinit var repository: com.example.ringer.data.LockRepository
     private lateinit var audioManager: AudioManager
     private var targetPackage: String? = null
     private var previousVolume: Int = 0
     private var maxVolume: Int = 15
     private var monitoringJob: Job? = null
+    private var isUnlocking: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,14 +37,15 @@ class LockActivity : AppCompatActivity() {
             return
         }
 
-        // If already accessible, just open it and finish
+        // If already accessible, just launch the target and finish
         if (repository.isAccessible(targetPackage!!)) {
+            repository.setForeground(targetPackage!!)
             launchTargetApp()
             finish()
             return
         }
 
-        // Monitor volume for the unlock trigger
+        // Start monitoring volume for unlock trigger
         startVolumeMonitoring()
     }
 
@@ -52,55 +53,60 @@ class LockActivity : AppCompatActivity() {
         monitoringJob = lifecycleScope.launch {
             while (isActive) {
                 val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-                if (currentVolume >= maxVolume) {
+                if (currentVolume >= maxVolume && !isUnlocking) {
                     onVolumeTriggered()
                     break
                 }
-                delay(250)
+                delay(200) // fast polling for responsive unlock
             }
         }
     }
 
     private fun onVolumeTriggered() {
         targetPackage?.let { pkg ->
+            isUnlocking = true
             lifecycleScope.launch {
-                // Mark the app as unlocked
+                // Set the app as unlocked
                 val timeoutSeconds = repository.getUnlockTimeoutSeconds()
                 repository.setUnlocked(pkg, timeoutSeconds)
 
-                // Set it as foreground so the accessibility service doesn't re-lock it
+                // Immediately mark as foreground so the accessibility service
+                // won't re-lock it when the target app opens
                 repository.setForeground(pkg)
 
-                // Restore volume after brief delay
-                delay(600)
+                // Wait a moment for the unlock state to propagate
+                delay(400)
+
+                // Restore volume
                 try {
                     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, previousVolume, 0)
-                } catch (_: Exception) {
-                    // Volume restore may fail on some devices, non-critical
-                }
+                } catch (_: Exception) { }
 
                 // Launch the target app
                 launchTargetApp()
 
-                // Finish the lock activity
+                // Finish LockActivity
                 finish()
             }
         }
     }
 
     /**
-     * Launch the target locked app using its launch intent.
-     * Falls back to opening the app's settings page if no launch intent exists.
+     * Launch the target locked app.
      */
     private fun launchTargetApp() {
         targetPackage?.let { pkg ->
-            val launchIntent = packageManager.getLaunchIntentForPackage(pkg)
-            if (launchIntent != null) {
-                launchIntent.addFlags(
-                    Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
-                )
-                startActivity(launchIntent)
+            try {
+                val launchIntent = packageManager.getLaunchIntentForPackage(pkg)
+                if (launchIntent != null) {
+                    launchIntent.addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+                    )
+                    startActivity(launchIntent)
+                }
+            } catch (_: Exception) {
+                // If we can't launch the app, the user can open it manually
             }
         }
     }
@@ -108,5 +114,10 @@ class LockActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         monitoringJob?.cancel()
+    }
+
+    override fun onBackPressed() {
+        // Don't allow back — user must trigger volume to unlock
+        // or go home via the system navigation
     }
 }

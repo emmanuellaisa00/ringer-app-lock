@@ -1,6 +1,5 @@
 package com.example.ringer
 
-import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -8,19 +7,19 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.ringer.databinding.ItemAppPickerBinding
 
 class AppPickerAdapter(
-    private var apps: List<ApplicationInfo>,
+    private var apps: List<AppItem>,
     private val pm: PackageManager,
-    private val onAppSelected: (ApplicationInfo) -> Unit
+    private val onAppSelected: (AppItem) -> Unit
 ) : RecyclerView.Adapter<AppPickerAdapter.ViewHolder>() {
 
-    fun updateApps(newApps: List<ApplicationInfo>) {
+    fun updateApps(newApps: List<AppItem>) {
         apps = newApps
         notifyDataSetChanged()
     }
 
     inner class ViewHolder(private val binding: ItemAppPickerBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(app: ApplicationInfo) {
-            binding.appName.text = pm.getApplicationLabel(app)
+        fun bind(app: AppItem) {
+            binding.appName.text = app.appName
             binding.appPackage.text = app.packageName
 
             try {

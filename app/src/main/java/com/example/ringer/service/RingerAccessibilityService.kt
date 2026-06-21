@@ -9,18 +9,18 @@ import com.example.ringer.RingerApplication
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class RingerAccessibilityService : AccessibilityService() {
 
     private lateinit var app: RingerApplication
-    private var lastPackage: String? = null
-    private var lastWasLocked: Boolean = false
+    private var currentPackage: String? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     /**
-     * Packages that are system-level overlays. Switching to these does NOT mean
-     * the user left the previous app — they just opened a dialog/shade/etc.
+     * Packages that are transient overlays — switching to these does NOT mean
+     * the user left the previous app.
      */
     private val overlayPrefixes = listOf(
         "com.android.systemui",
@@ -28,14 +28,12 @@ class RingerAccessibilityService : AccessibilityService() {
         "com.google.android.permissioncontroller",
         "com.android.permissioncontroller",
         "com.android.packageinstaller",
-        "com.android.settings",        // settings quick tiles
-        "com.android.dialog",          // system dialogs
-        "com.google.android.apps.messaging", // RCS dialog overlays
+        "com.android.dialog",
         "android"
     )
 
-    /** The launcher packages — going here means user went home. */
-    private val launcherKeywords = listOf("launcher", "home", "trebuchet")
+    /** Keywords in launcher package names — going here = user went home. */
+    private val homeKeywords = listOf("launcher", "home", "trebuchet", "pixel")
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -45,7 +43,7 @@ class RingerAccessibilityService : AccessibilityService() {
             eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
             feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
             notificationTimeout = 50
-            packageNames = null // monitor all packages
+            packageNames = null
             flags = AccessibilityServiceInfo.DEFAULT
         }
     }
@@ -55,65 +53,96 @@ class RingerAccessibilityService : AccessibilityService() {
 
         val packageName = event.packageName?.toString() ?: return
 
-        // Ignore our own app's activities
-        if (packageName == this.packageName) {
-            lastPackage = packageName
-            return
-        }
+        // Always ignore our own app
+        if (packageName == this.packageName) return
 
-        val previousPackage = lastPackage
-        lastPackage = packageName
+        // Skip null/empty packages (rare edge case)
+        if (packageName.isBlank()) return
 
-        // Same package, no action
+        val previousPackage = currentPackage
+        currentPackage = packageName
+
+        // Same package — user is navigating within the same app, ignore
         if (packageName == previousPackage) return
 
         val repository = app.repository
 
-        // ---- Detect leaving a foreground-unlocked locked app ----
-        if (previousPackage != null && !isOverlay(packageName)) {
-            // User left previousPackage for a real different app
-            repository.clearForeground(previousPackage)
+        // ---- Step 1: Detect leaving a foreground-unlocked app ----
+        if (previousPackage != null && repository.isForegroundUnlocked(previousPackage)) {
+            if (isRealAppSwitch(previousPackage, packageName)) {
+                // User intentionally left the locked app for a different real app or home
+                repository.clearForeground(previousPackage)
+            }
+            // else: switching to an overlay (dialog, notification shade, etc.) — don't clear foreground
         }
 
-        // ---- Check if the new package is locked ----
+        // ---- Step 2: Check if the new package is locked ----
         serviceScope.launch {
+            // Re-check currentPackage in case it changed while coroutine was pending
+            if (currentPackage != packageName) return@launch
+
             val lockedApp = repository.getLockedApp(packageName) ?: return@launch
 
-            // Guard: if user already moved on, skip
-            if (lastPackage != packageName) return@launch
-
             if (repository.isAccessible(packageName)) {
-                // Allowed in — mark as foreground so user stays protected while using
+                // App is accessible — user is allowed in.
+                // Set foreground so they stay in until they intentionally leave.
                 repository.setForeground(packageName)
-                lastWasLocked = true
             } else {
-                // LOCKED: Close the app and show LockActivity for volume monitoring
-                lastWasLocked = true
-                performGlobalAction(GLOBAL_ACTION_HOME)
-
-                // Brief delay for home action to take effect
-                kotlinx.coroutines.delay(200)
-
-                val intent = Intent(this@RingerAccessibilityService, LockActivity::class.java).apply {
-                    putExtra("target_package", packageName)
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                }
-                startActivity(intent)
+                // App is LOCKED — close it immediately and monitor for unlock
+                lockAndMonitor(packageName)
             }
         }
     }
 
     /**
-     * Check if a package is a system overlay or launcher.
-     * Switching to these does NOT mean the user intentionally left the previous app.
+     * Close the locked app and launch LockActivity to monitor volume.
      */
-    private fun isOverlay(pkg: String): Boolean {
-        if (overlayPrefixes.any { pkg.startsWith(it) }) return true
-        if (launcherKeywords.any { pkg.contains(it) }) return true
-        return false
+    private fun lockAndMonitor(packageName: String) {
+        // Go home to close the locked app
+        performGlobalAction(GLOBAL_ACTION_HOME)
+
+        // Small delay so home action takes effect before we start our activity
+        serviceScope.launch {
+            delay(300)
+
+            // Re-check: maybe user already moved on
+            if (currentPackage != packageName && !isHome(currentPackage)) {
+                return@launch
+            }
+
+            val intent = Intent(this@RingerAccessibilityService, LockActivity::class.java).apply {
+                putExtra("target_package", packageName)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            }
+            startActivity(intent)
+        }
     }
 
-    override fun onInterrupt() {
-        // No-op
+    /**
+     * Returns true if this is a "real" app switch — i.e., the user intentionally
+     * navigated away from the previous app to a different real app or home screen.
+     * Switching to overlays/dialogs does NOT count.
+     */
+    private fun isRealAppSwitch(fromPackage: String, toPackage: String): Boolean {
+        // Going to an overlay is NOT a real switch
+        if (isOverlay(toPackage)) return false
+
+        // Going home IS a real switch
+        if (isHome(toPackage)) return true
+
+        // Going to a different real app IS a real switch
+        return fromPackage != toPackage
     }
+
+    private fun isOverlay(pkg: String): Boolean {
+        return overlayPrefixes.any { pkg.startsWith(it) }
+    }
+
+    private fun isHome(pkg: String?): Boolean {
+        if (pkg == null) return true
+        val lower = pkg.lowercase()
+        return homeKeywords.any { lower.contains(it) }
+    }
+
+    override fun onInterrupt() {}
 }
