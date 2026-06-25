@@ -6,9 +6,10 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.PowerManager
 import android.provider.Settings
 import android.view.View
+import android.view.animation.DecelerateInterpolator
+import android.view.animation.OvershootInterpolator
 import android.view.accessibility.AccessibilityManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -53,6 +54,42 @@ class MainActivity : AppCompatActivity() {
         setupListeners()
         observeViewModel()
         checkPermissionsAndStartService()
+        entranceAnimation()
+    }
+
+    private fun entranceAnimation() {
+        // Header slides down
+        binding.header.alpha = 0f
+        binding.header.translationY = -20f
+        binding.header.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(400)
+            .setStartDelay(100)
+            .setInterpolator(DecelerateInterpolator(1.5f))
+            .start()
+
+        // Status card fades in
+        binding.statusCard.alpha = 0f
+        binding.statusCard.translationY = 10f
+        binding.statusCard.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(400)
+            .setStartDelay(200)
+            .setInterpolator(DecelerateInterpolator())
+            .start()
+
+        // FAB slides up from bottom
+        binding.addButton.translationY = 100f
+        binding.addButton.alpha = 0f
+        binding.addButton.animate()
+            .translationY(0f)
+            .alpha(1f)
+            .setDuration(500)
+            .setStartDelay(300)
+            .setInterpolator(OvershootInterpolator(0.8f))
+            .start()
     }
 
     private fun setupRecyclerView() {
@@ -83,6 +120,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.settingsButton.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
     }
 
@@ -127,6 +165,7 @@ class MainActivity : AppCompatActivity() {
     private fun launchAppPicker() {
         val intent = Intent(this, AppSelectionActivity::class.java)
         packagePicker.launch(intent)
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
     }
 
     private fun checkPermissionsAndStartService() {
@@ -172,5 +211,6 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         val enabled = isAccessibilityServiceEnabled()
         viewModel.updateAccessibilityStatus(enabled)
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 }

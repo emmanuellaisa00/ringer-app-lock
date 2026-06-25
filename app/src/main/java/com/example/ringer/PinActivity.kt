@@ -2,7 +2,11 @@ package com.example.ringer
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
+import android.view.animation.DecelerateInterpolator
+import android.view.animation.OvershootInterpolator
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.ringer.databinding.ActivityPinBinding
@@ -15,6 +19,7 @@ class PinActivity : AppCompatActivity() {
     private val dots by lazy {
         listOf(binding.dot1, binding.dot2, binding.dot3, binding.dot4)
     }
+    private val handler = Handler(Looper.getMainLooper())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,6 +27,19 @@ class PinActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupKeys()
+        entranceAnimation()
+    }
+
+    private fun entranceAnimation() {
+        // Pin dots slide down from above
+        binding.pinDots.alpha = 0f
+        binding.pinDots.translationY = -20f
+        binding.pinDots.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(400)
+            .setInterpolator(DecelerateInterpolator(1.5f))
+            .start()
     }
 
     private fun setupKeys() {
@@ -36,8 +54,22 @@ class PinActivity : AppCompatActivity() {
                 if (enteredPin.length < 4) {
                     enteredPin.append((it as TextView).text)
                     updateDots()
+                    // Tap feedback — scale pulse
+                    key.animate()
+                        .scaleX(0.9f)
+                        .scaleY(0.9f)
+                        .setDuration(80)
+                        .withEndAction {
+                            key.animate()
+                                .scaleX(1f)
+                                .scaleY(1f)
+                                .setDuration(120)
+                                .setInterpolator(OvershootInterpolator(1.5f))
+                                .start()
+                        }
+                        .start()
                     if (enteredPin.length == 4) {
-                        checkPin()
+                        handler.postDelayed({ checkPin() }, 200)
                     }
                 }
             }
@@ -54,44 +86,85 @@ class PinActivity : AppCompatActivity() {
 
     private fun updateDots() {
         for (i in dots.indices) {
-            val params = dots[i].layoutParams
             if (i < enteredPin.length) {
-                dots[i].setBackgroundColor(getColor(R.color.primary))
+                dots[i].setBackgroundResource(R.drawable.pin_dot_filled)
+                dots[i].animate()
+                    .scaleX(1.3f)
+                    .scaleY(1.3f)
+                    .setDuration(100)
+                    .withEndAction {
+                        dots[i].animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(150)
+                            .setInterpolator(OvershootInterpolator(2f))
+                            .start()
+                    }
+                    .start()
             } else {
-                dots[i].setBackgroundColor(getColor(R.color.surface_elevated))
+                dots[i].setBackgroundResource(R.drawable.pin_dot_empty)
             }
-            dots[i].layoutParams = params
         }
     }
 
     private fun checkPin() {
         if (enteredPin.toString() == correctPin) {
-            // Correct — launch main lock management screen
             binding.pinError.visibility = View.INVISIBLE
-            startActivity(Intent(this, MainActivity::class.java))
-            finishAffinity() // clear volume + pin from back stack
+
+            // Success — flash green and slide to main
+            dots.forEach { dot ->
+                dot.setBackgroundColor(getColor(R.color.status_active))
+            }
+
+            handler.postDelayed({
+                startActivity(Intent(this, MainActivity::class.java))
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                finishAffinity()
+            }, 350)
         } else {
             // Wrong — shake and reset
             binding.pinError.visibility = View.VISIBLE
             shakeDots()
+            dots.forEach { dot ->
+                dot.setBackgroundColor(getColor(R.color.danger))
+            }
             enteredPin.clear()
-            // Brief delay before resetting dots
-            binding.pinDots.postDelayed({ updateDots() }, 300)
+            handler.postDelayed({
+                updateDots()
+            }, 500)
         }
     }
 
     private fun shakeDots() {
         binding.pinDots.animate()
-            .translationXBy(-20f)
-            .setDuration(50)
+            .translationXBy(-16f)
+            .setDuration(40)
             .withEndAction {
                 binding.pinDots.animate()
-                    .translationXBy(40f)
-                    .setDuration(100)
+                    .translationXBy(32f)
+                    .setDuration(80)
                     .withEndAction {
                         binding.pinDots.animate()
-                            .translationXBy(-20f)
-                            .setDuration(50)
+                            .translationXBy(-24f)
+                            .setDuration(60)
+                            .withEndAction {
+                                binding.pinDots.animate()
+                                    .translationXBy(16f)
+                                    .setDuration(40)
+                                    .withEndAction {
+                                        binding.pinDots.animate()
+                                            .translationXBy(8f)
+                                            .setDuration(30)
+                                            .withEndAction {
+                                                binding.pinDots.animate()
+                                                    .translationXBy(-8f)
+                                                    .setDuration(20)
+                                                    .start()
+                                            }
+                                            .start()
+                                    }
+                                    .start()
+                            }
                             .start()
                     }
                     .start()
@@ -100,7 +173,12 @@ class PinActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        // Go back to volume screen
         super.onBackPressed()
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacksAndMessages(null)
     }
 }

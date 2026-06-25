@@ -24,6 +24,8 @@ class LockActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_lock)
+        // Fade in the stealth overlay
+        overridePendingTransition(R.anim.fade_in, 0)
 
         repository = RingerApplication.instance.repository
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -57,7 +59,7 @@ class LockActivity : AppCompatActivity() {
                     onVolumeTriggered()
                     break
                 }
-                delay(200) // fast polling for responsive unlock
+                delay(200)
             }
         }
     }
@@ -66,34 +68,19 @@ class LockActivity : AppCompatActivity() {
         targetPackage?.let { pkg ->
             isUnlocking = true
             lifecycleScope.launch {
-                // Set the app as unlocked
                 val timeoutSeconds = repository.getUnlockTimeoutSeconds()
                 repository.setUnlocked(pkg, timeoutSeconds)
-
-                // Immediately mark as foreground so the accessibility service
-                // won't re-lock it when the target app opens
                 repository.setForeground(pkg)
-
-                // Wait a moment for the unlock state to propagate
                 delay(400)
-
-                // Restore volume
                 try {
                     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, previousVolume, 0)
                 } catch (_: Exception) { }
-
-                // Launch the target app
                 launchTargetApp()
-
-                // Finish LockActivity
                 finish()
             }
         }
     }
 
-    /**
-     * Launch the target locked app.
-     */
     private fun launchTargetApp() {
         targetPackage?.let { pkg ->
             try {
@@ -105,15 +92,14 @@ class LockActivity : AppCompatActivity() {
                     )
                     startActivity(launchIntent)
                 }
-            } catch (_: Exception) {
-                // If we can't launch the app, the user can open it manually
-            }
+            } catch (_: Exception) { }
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         monitoringJob?.cancel()
+        overridePendingTransition(0, R.anim.fade_out)
     }
 
     override fun onBackPressed() {

@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.view.animation.DecelerateInterpolator
 import androidx.appcompat.app.AppCompatActivity
 import com.example.ringer.databinding.ActivitySettingsBinding
 import com.example.ringer.viewmodel.SettingsViewModel
@@ -23,10 +24,40 @@ class SettingsActivity : AppCompatActivity() {
         viewModel = SettingsViewModel(repository)
 
         setupUI()
+        entranceAnimation()
+    }
+
+    private fun entranceAnimation() {
+        // Header slides in
+        binding.header.alpha = 0f
+        binding.header.translationX = -30f
+        binding.header.animate()
+            .alpha(1f)
+            .translationX(0f)
+            .setDuration(350)
+            .setInterpolator(DecelerateInterpolator(1.5f))
+            .start()
+
+        // Scroll content fades in
+        val scrollView = binding.root.getChildAt(1)
+        scrollView?.let {
+            it.alpha = 0f
+            it.translationY = 15f
+            it.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(400)
+                .setStartDelay(150)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+        }
     }
 
     private fun setupUI() {
-        binding.backButton.setOnClickListener { finish() }
+        binding.backButton.setOnClickListener {
+            finish()
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+        }
 
         setupTimeoutChips()
 
@@ -74,12 +105,16 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Update accessibility status dot
         val enabled = isAccessibilityServiceEnabled()
         binding.accessibilityStatus.text = if (enabled) getString(R.string.accessibility_enabled) else getString(R.string.accessibility_disabled)
         val colorRes = if (enabled) R.color.status_active else R.color.status_inactive
         binding.accessibilityStatus.setTextColor(getColor(colorRes))
         binding.accessibilityDot.setBackgroundColor(getColor(colorRes))
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 
     private fun isAccessibilityServiceEnabled(): Boolean {

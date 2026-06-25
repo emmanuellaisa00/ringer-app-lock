@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.view.animation.DecelerateInterpolator
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.ringer.databinding.ActivityAppSelectionBinding
@@ -29,7 +30,10 @@ class AppSelectionActivity : AppCompatActivity() {
         binding = ActivityAppSelectionBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.backButton.setOnClickListener { finish() }
+        binding.backButton.setOnClickListener {
+            finish()
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+        }
 
         allApps = loadAllApps()
 
@@ -40,12 +44,45 @@ class AppSelectionActivity : AppCompatActivity() {
             }
             setResult(Activity.RESULT_OK, intent)
             finish()
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
         }
 
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = adapter
 
         setupSearch()
+        entranceAnimation()
+    }
+
+    private fun entranceAnimation() {
+        binding.header.alpha = 0f
+        binding.header.translationX = -30f
+        binding.header.animate()
+            .alpha(1f)
+            .translationX(0f)
+            .setDuration(350)
+            .setInterpolator(DecelerateInterpolator(1.5f))
+            .start()
+
+        binding.searchCard.alpha = 0f
+        binding.searchCard.translationY = 10f
+        binding.searchCard.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(350)
+            .setStartDelay(100)
+            .setInterpolator(DecelerateInterpolator())
+            .start()
+
+        binding.recyclerView.alpha = 0f
+        binding.recyclerView.translationY = 15f
+        binding.recyclerView.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(400)
+            .setStartDelay(200)
+            .setInterpolator(DecelerateInterpolator())
+            .start()
     }
 
     private fun loadAllApps(): List<AppItem> {
@@ -97,5 +134,10 @@ class AppSelectionActivity : AppCompatActivity() {
         adapter.updateApps(filtered)
         binding.noResultsLayout.visibility = if (filtered.isEmpty() && query.isNotEmpty()) View.VISIBLE else View.GONE
         binding.recyclerView.visibility = if (filtered.isEmpty()) View.GONE else View.VISIBLE
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 }
