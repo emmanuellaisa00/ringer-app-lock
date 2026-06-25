@@ -9,7 +9,7 @@ import com.example.ringer.data.AppInfo
 import com.example.ringer.databinding.ItemLockedAppBinding
 
 class LockedAppsAdapter(
-    private val onRemove: (String) -> Unit
+    private val onRemove: (AppInfo) -> Unit
 ) : ListAdapter<AppInfo, LockedAppsAdapter.ViewHolder>(DiffCallback) {
 
     object DiffCallback : DiffUtil.ItemCallback<AppInfo>() {
@@ -30,7 +30,7 @@ class LockedAppsAdapter(
             }
 
             binding.removeButton.setOnClickListener {
-                onRemove(app.packageName)
+                onRemove(app)
             }
         }
     }

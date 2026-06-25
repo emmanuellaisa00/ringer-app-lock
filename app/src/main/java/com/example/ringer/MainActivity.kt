@@ -56,7 +56,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = LockedAppsAdapter { app ->
+        adapter = LockedAppsAdapter { app: AppInfo ->
             showRemoveConfirmDialog(app)
         }
         binding.lockedAppsRecycler.layoutManager = LinearLayoutManager(this)
@@ -71,6 +71,7 @@ class MainActivity : AppCompatActivity() {
                 viewModel.removeApp(app.packageName)
                 Toast.makeText(this, getString(R.string.app_removed_toast, app.appName), Toast.LENGTH_SHORT).show()
             }
+            .setCancelable(true)
             .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
