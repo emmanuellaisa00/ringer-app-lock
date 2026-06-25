@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/surface_dark"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingHorizontal="48dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/pin_title"
+            android:textColor="@color/text_primary"
+            android:textSize="22sp"
+            android:fontFamily="sans-serif-medium" />
+
+        <!-- PIN dots -->
+        <LinearLayout
+            android:id="@+id/pin_dots"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:orientation="horizontal">
+
+            <View android:id="@+id/dot1" style="@style/PinDotEmpty" />
+            <View android:id="@+id/dot2" style="@style/PinDotEmpty" />
+            <View android:id="@+id/dot3" style="@style/PinDotEmpty" />
+            <View android:id="@+id/dot4" style="@style/PinDotEmpty" />
+        </LinearLayout>
+
+        <!-- Error text -->
+        <TextView
+            android:id="@+id/pin_error"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/pin_wrong"
+            android:textColor="@color/danger"
+            android:textSize="13sp"
+            android:visibility="invisible" />
+
+        <!-- Numpad -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:orientation="vertical">
+
+            <!-- Row 1: 1 2 3 -->
+            <LinearLayout style="@style/PinRow">
+                <TextView android:id="@+id/key1" style="@style/PinKey" android:text="1" />
+                <TextView android:id="@+id/key2" style="@style/PinKey" android:text="2" />
+                <TextView android:id="@+id/key3" style="@style/PinKey" android:text="3" />
+            </LinearLayout>
+
+            <!-- Row 2: 4 5 6 -->
+            <LinearLayout style="@style/PinRow">
+                <TextView android:id="@+id/key4" style="@style/PinKey" android:text="4" />
+                <TextView android:id="@+id/key5" style="@style/PinKey" android:text="5" />
+                <TextView android:id="@+id/key6" style="@style/PinKey" android:text="6" />
+            </LinearLayout>
+
+            <!-- Row 3: 7 8 9 -->
+            <LinearLayout style="@style/PinRow">
+                <TextView android:id="@+id/key7" style="@style/PinKey" android:text="7" />
+                <TextView android:id="@+id/key8" style="@style/PinKey" android:text="8" />
+                <TextView android:id="@+id/key9" style="@style/PinKey" android:text="9" />
+            </LinearLayout>
+
+            <!-- Row 4: empty 0 delete -->
+            <LinearLayout style="@style/PinRow">
+                <View style="@style/PinKeyPlaceholder" />
+                <TextView android:id="@+id/key0" style="@style/PinKey" android:text="0" />
+                <ImageButton
+                    android:id="@+id/key_delete"
+                    style="@style/PinKeyDelete"
+                    android:src="@drawable/ic_clear"
+                    android:contentDescription="Delete" />
+            </LinearLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

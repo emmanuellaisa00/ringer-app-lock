@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Ringer</string>
+    <!-- Launcher name (decoy) -->
+    <string name="app_name">SoundMax</string>
+    <!-- Internal name shown inside the app -->
+    <string name="app_name_internal">Ringer</string>
+
     <string name="locked_apps">Locked Apps</string>
     <string name="select_apps">Select apps to lock</string>
     <string name="add_app">Add app</string>
@@ -19,18 +23,28 @@
     <string name="timeout_300s">5 min</string>
     <string name="timeout_description">How long the app stays unlocked after you leave it</string>
     <string name="no_apps_selected">No apps locked yet.\nTap the button below to add protection.</string>
-    <string name="service_notification">Protection active</string>
-    <string name="foreground_channel_name">Protection Service</string>
+    <string name="service_notification">SoundMax running</string>
+    <string name="foreground_channel_name">Sound Service</string>
     <string name="accessibility_enabled">Protection active</string>
     <string name="accessibility_disabled">Protection inactive</string>
     <string name="protection_status">Protection Status</string>
     <string name="locked_count">%1$d locked</string>
     <string name="remove_app">Remove</string>
     <string name="confirm_remove_title">Remove lock?</string>
-    <string name="confirm_remove_message">This app will no longer be protected by Ringer.</string>
+    <string name="confirm_remove_message">This app will no longer be protected.</string>
     <string name="cancel">Cancel</string>
     <string name="remove">Remove</string>
     <string name="app_locked_toast">%1$s is now locked</string>
     <string name="app_removed_toast">%1$s unlocked</string>
     <string name="enable_accessibility_prompt">Enable Accessibility Service to start protecting apps</string>
+
+    <!-- Volume screen (decoy) -->
+    <string name="volume_label">Volume Booster</string>
+    <string name="volume_max_hint">Max out all bars</string>
+
+    <!-- PIN screen -->
+    <string name="pin_title">Enter PIN</string>
+    <string name="pin_hint">4-digit PIN</string>
+    <string name="pin_wrong">Wrong PIN</string>
+    <string name="pin_default">0000</string>
 </resources>

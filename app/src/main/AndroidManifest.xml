@@ -30,7 +30,7 @@
         tools:targetApi="34">
 
         <activity
-            android:name=".MainActivity"
+            android:name=".VolumeActivity"
             android:exported="true"
             android:theme="@style/Theme.Ringer">
             <intent-filter>
@@ -38,6 +38,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".PinActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Ringer" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Ringer" />
 
         <activity
             android:name=".LockActivity"
