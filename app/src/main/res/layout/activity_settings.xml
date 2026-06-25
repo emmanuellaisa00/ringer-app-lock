@@ -7,17 +7,16 @@
     android:background="@color/surface_dark"
     android:fitsSystemWindows="true"
     android:paddingHorizontal="20dp"
-    android:paddingTop="16dp"
+    android:paddingTop="12dp"
     tools:context=".SettingsActivity">
 
     <!-- Header -->
     <LinearLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="56dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingVertical="8dp"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageButton
@@ -25,8 +24,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="@drawable/ripple_glass"
-            android:src="@android:drawable/ic_menu_revert"
-            android:tint="@color/icon_tint"
+            android:src="@drawable/ic_arrow_back"
             android:contentDescription="Back"
             android:scaleType="centerInside" />
 
@@ -41,154 +39,216 @@
             android:fontFamily="sans-serif-medium" />
     </LinearLayout>
 
-    <!-- Timeout Card -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/timeout_card"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="0dp"
-        app:strokeWidth="0dp"
-        app:cardBackgroundColor="@color/surface_card"
-        app:layout_constraintTop_toBottomOf="@id/header">
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/header"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:paddingTop="4dp"
+            android:paddingBottom="32dp">
 
-            <TextView
+            <!-- Timeout Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/timeout_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/unlock_timeout_label"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:fontFamily="sans-serif-medium" />
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp"
+                app:cardBackgroundColor="@color/surface_card">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="@string/timeout_description"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp"
-                android:lineSpacingExtra="2dp" />
-
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/timeout_chip_group"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                app:chipSpacingHorizontal="8dp"
-                app:chipSpacingVertical="6dp"
-                app:singleSelection="true"
-                app:selectionRequired="true" />
-
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Accessibility Card -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/access_card"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="0dp"
-        app:strokeWidth="0dp"
-        app:cardBackgroundColor="@color/surface_card"
-        app:layout_constraintTop_toBottomOf="@id/timeout_card">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="20dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Accessibility"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:fontFamily="sans-serif-medium" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <View
-                    android:id="@+id/accessibility_dot"
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:background="@color/status_inactive" />
-
-                <TextView
-                    android:id="@+id/accessibility_status"
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="10dp"
-                    android:text="@string/accessibility_disabled"
-                    android:textColor="@color/status_inactive"
-                    android:textSize="14sp" />
-            </LinearLayout>
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/enable_accessibility_btn"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="14dp"
-                android:text="@string/enable_accessibility"
-                android:textAllCaps="false"
-                app:cornerRadius="14dp" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
 
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_timer_outline"
+                            android:importantForAccessibility="no" />
 
-    <!-- Battery Card -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/battery_card"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="0dp"
-        app:strokeWidth="0dp"
-        app:cardBackgroundColor="@color/surface_card"
-        app:layout_constraintTop_toBottomOf="@id/access_card">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="10dp"
+                            android:text="@string/unlock_timeout_label"
+                            android:textColor="@color/text_primary"
+                            android:textSize="15sp"
+                            android:fontFamily="sans-serif-medium" />
+                    </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="20dp">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginStart="30dp"
+                        android:text="@string/timeout_description"
+                        android:textColor="@color/text_hint"
+                        android:textSize="12sp"
+                        android:lineSpacingExtra="2dp" />
 
-            <TextView
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/timeout_chip_group"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        app:chipSpacingHorizontal="8dp"
+                        app:chipSpacingVertical="6dp"
+                        app:singleSelection="true"
+                        app:selectionRequired="true" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Accessibility Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/access_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Battery"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:fontFamily="sans-serif-medium" />
+                android:layout_marginTop="12dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp"
+                app:cardBackgroundColor="@color/surface_card">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/disable_battery_btn"
-                style="@style/Widget.Material3.Button.TonalButton"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_accessibility_outline"
+                            android:importantForAccessibility="no" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="10dp"
+                            android:text="Accessibility"
+                            android:textColor="@color/text_primary"
+                            android:textSize="15sp"
+                            android:fontFamily="sans-serif-medium" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="30dp"
+                        android:layout_marginTop="10dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <View
+                            android:id="@+id/accessibility_dot"
+                            android:layout_width="8dp"
+                            android:layout_height="8dp"
+                            android:background="@color/status_inactive" />
+
+                        <TextView
+                            android:id="@+id/accessibility_status"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/accessibility_disabled"
+                            android:textColor="@color/status_inactive"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/enable_accessibility_btn"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginStart="30dp"
+                        android:layout_marginTop="12dp"
+                        android:text="@string/enable_accessibility"
+                        android:textAllCaps="false"
+                        app:cornerRadius="14dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Battery Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/battery_card"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="14dp"
-                android:text="@string/battery_optimization"
-                android:textAllCaps="false"
-                app:cornerRadius="14dp" />
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp"
+                app:cardBackgroundColor="@color/surface_card">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_battery_outline"
+                            android:importantForAccessibility="no" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="10dp"
+                            android:text="@string/battery_optimization"
+                            android:textColor="@color/text_primary"
+                            android:textSize="15sp"
+                            android:fontFamily="sans-serif-medium" />
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/disable_battery_btn"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginStart="30dp"
+                        android:layout_marginTop="12dp"
+                        android:text="@string/battery_optimization"
+                        android:textAllCaps="false"
+                        app:cornerRadius="14dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
+    </androidx.core.widget.NestedScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

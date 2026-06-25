@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Deep dark surface layers – Android 17 Material You -->
-    <color name="surface_dark">#0E0E1C</color>
-    <color name="surface_card">#171729</color>
-    <color name="surface_elevated">#1E1E38</color>
+    <!-- Surface layers -->
+    <color name="surface_dark">#0C0C18</color>
+    <color name="surface_card">#161626</color>
+    <color name="surface_elevated">#1E1E34</color>
     <color name="surface_search">#1A1A30</color>
 
-    <!-- Primary – vibrant indigo -->
+    <!-- Primary indigo -->
     <color name="primary">#8B8DF8</color>
     <color name="primary_variant">#6366F1</color>
-    <color name="primary_container">#2D2D5E</color>
+    <color name="primary_container">#2A2A58</color>
 
     <!-- Accent -->
     <color name="accent_cyan">#67E8F9</color>
     <color name="accent_emerald">#34D399</color>
 
     <!-- Borders -->
-    <color name="border_subtle">#1FFFFFFF</color>
-    <color name="border_medium">#33FFFFFF</color>
+    <color name="border_subtle">#1AFFFFFF</color>
+    <color name="border_medium">#30FFFFFF</color>
 
     <!-- Text hierarchy -->
     <color name="text_primary">#EDEDF4</color>
@@ -26,7 +26,7 @@
 
     <!-- Chip -->
     <color name="chip_selected_bg">#6366F1</color>
-    <color name="chip_unselected_bg">#1E1E38</color>
+    <color name="chip_unselected_bg">#1E1E34</color>
     <color name="chip_selected_text">#FFFFFF</color>
     <color name="chip_unselected_text">#8E8FA3</color>
 
@@ -38,12 +38,19 @@
     <color name="danger">#FB7185</color>
 
     <!-- Search bar -->
-    <color name="search_bar_bg">#1E1E38</color>
+    <color name="search_bar_bg">#1A1A30</color>
     <color name="search_bar_hint">#52536B</color>
-    <color name="search_divider">#1AFFFFFF</color>
 
     <!-- Icon tint -->
     <color name="icon_tint">#A0A1B5</color>
+    <color name="icon_tint_active">#8B8DF8</color>
+
+    <!-- Badge -->
+    <color name="badge_active_bg">#1A34D399</color>
+    <color name="badge_inactive_bg">#1AF87171</color>
+
+    <!-- Dividers -->
+    <color name="divider">#0DFFFFFF</color>
 
     <!-- White / Black -->
     <color name="white">#FFFFFF</color>

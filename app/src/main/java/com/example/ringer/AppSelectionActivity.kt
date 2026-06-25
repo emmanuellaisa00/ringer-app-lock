@@ -23,7 +23,6 @@ class AppSelectionActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAppSelectionBinding
     private lateinit var adapter: AppPickerAdapter
     private lateinit var allApps: List<AppItem>
-    private var isSearching = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,7 +31,6 @@ class AppSelectionActivity : AppCompatActivity() {
 
         binding.backButton.setOnClickListener { finish() }
 
-        // Query ALL installed apps that have a launcher intent (user-facing apps)
         allApps = loadAllApps()
 
         adapter = AppPickerAdapter(allApps, packageManager) { app ->
@@ -50,21 +48,14 @@ class AppSelectionActivity : AppCompatActivity() {
         setupSearch()
     }
 
-    /**
-     * Loads all user-facing apps (those with a launcher intent).
-     * Uses QUERY_ALL_PACKAGES permission to see all installed apps,
-     * then filters to only those that can actually be launched.
-     */
     private fun loadAllApps(): List<AppItem> {
         val pm = packageManager
-
-        // Get launch intent apps — these are user-facing
         val launchIntent = Intent(Intent.ACTION_MAIN, null).apply {
             addCategory(Intent.CATEGORY_LAUNCHER)
         }
         val resolveInfos = pm.queryIntentActivities(launchIntent, PackageManager.GET_META_DATA)
 
-        val apps = resolveInfos.mapNotNull { resolveInfo ->
+        return resolveInfos.mapNotNull { resolveInfo ->
             val packageName = resolveInfo.activityInfo.packageName
             if (packageName == this.packageName) return@mapNotNull null
             val appInfo = resolveInfo.activityInfo.applicationInfo
@@ -76,8 +67,6 @@ class AppSelectionActivity : AppCompatActivity() {
             )
         }.distinctBy { it.packageName }
             .sortedBy { it.appName.lowercase() }
-
-        return apps
     }
 
     private fun setupSearch() {
@@ -106,7 +95,7 @@ class AppSelectionActivity : AppCompatActivity() {
             }
         }
         adapter.updateApps(filtered)
-        binding.noResultsText.visibility = if (filtered.isEmpty() && query.isNotEmpty()) View.VISIBLE else View.GONE
+        binding.noResultsLayout.visibility = if (filtered.isEmpty() && query.isNotEmpty()) View.VISIBLE else View.GONE
         binding.recyclerView.visibility = if (filtered.isEmpty()) View.GONE else View.VISIBLE
     }
 }

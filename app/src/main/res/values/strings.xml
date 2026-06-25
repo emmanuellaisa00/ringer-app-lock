@@ -3,7 +3,8 @@
     <string name="app_name">Ringer</string>
     <string name="locked_apps">Locked Apps</string>
     <string name="select_apps">Select apps to lock</string>
-    <string name="search_apps">Search apps…</string>
+    <string name="add_app">Add app</string>
+    <string name="search_apps">Search apps</string>
     <string name="no_results">No apps found</string>
     <string name="settings">Settings</string>
     <string name="enable_accessibility">Enable Accessibility</string>
@@ -17,16 +18,19 @@
     <string name="timeout_120s">2 min</string>
     <string name="timeout_300s">5 min</string>
     <string name="timeout_description">How long the app stays unlocked after you leave it</string>
-    <string name="save">Save</string>
-    <string name="no_apps_selected">No apps locked yet.\nTap + to add protection.</string>
+    <string name="no_apps_selected">No apps locked yet.\nTap the button below to add protection.</string>
     <string name="service_notification">Protection active</string>
     <string name="foreground_channel_name">Protection Service</string>
     <string name="accessibility_enabled">Protection active</string>
     <string name="accessibility_disabled">Protection inactive</string>
-    <string name="service_running">Protection active</string>
-    <string name="timeout_saved">Timeout saved</string>
     <string name="protection_status">Protection Status</string>
-    <string name="locked_count">%1$d apps locked</string>
+    <string name="locked_count">%1$d locked</string>
     <string name="remove_app">Remove</string>
-    <string name="tap_to_unlock">Raise volume to unlock</string>
+    <string name="confirm_remove_title">Remove lock?</string>
+    <string name="confirm_remove_message">This app will no longer be protected by Ringer.</string>
+    <string name="cancel">Cancel</string>
+    <string name="remove">Remove</string>
+    <string name="app_locked_toast">%1$s is now locked</string>
+    <string name="app_removed_toast">%1$s unlocked</string>
+    <string name="enable_accessibility_prompt">Enable Accessibility Service to start protecting apps</string>
 </resources>

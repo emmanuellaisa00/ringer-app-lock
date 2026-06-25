@@ -12,6 +12,7 @@ import android.view.View
 import android.view.accessibility.AccessibilityManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -35,7 +36,7 @@ class MainActivity : AppCompatActivity() {
             val name = result.data?.getStringExtra("selected_name")
             if (pkg != null && name != null) {
                 viewModel.addApp(AppInfo(pkg, name))
-                Toast.makeText(this, "$name locked", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.app_locked_toast, name), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -55,11 +56,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = LockedAppsAdapter { packageName ->
-            viewModel.removeApp(packageName)
+        adapter = LockedAppsAdapter { app ->
+            showRemoveConfirmDialog(app)
         }
         binding.lockedAppsRecycler.layoutManager = LinearLayoutManager(this)
         binding.lockedAppsRecycler.adapter = adapter
+    }
+
+    private fun showRemoveConfirmDialog(app: AppInfo) {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.confirm_remove_title))
+            .setMessage(getString(R.string.confirm_remove_message))
+            .setPositiveButton(getString(R.string.remove)) { _, _ ->
+                viewModel.removeApp(app.packageName)
+                Toast.makeText(this, getString(R.string.app_removed_toast, app.appName), Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
     }
 
     private fun setupListeners() {
@@ -79,12 +92,12 @@ class MainActivity : AppCompatActivity() {
                 if (apps.isEmpty()) {
                     binding.lockedAppsRecycler.visibility = View.GONE
                     binding.emptyState.visibility = View.VISIBLE
-                    binding.lockedAppsLabel.visibility = View.GONE
+                    binding.lockedAppsHeader.visibility = View.GONE
                     binding.lockedCountText.visibility = View.GONE
                 } else {
                     binding.lockedAppsRecycler.visibility = View.VISIBLE
                     binding.emptyState.visibility = View.GONE
-                    binding.lockedAppsLabel.visibility = View.VISIBLE
+                    binding.lockedAppsHeader.visibility = View.VISIBLE
                     binding.lockedCountText.visibility = View.VISIBLE
                     binding.lockedCountText.text = getString(R.string.locked_count, apps.size)
                 }
@@ -93,12 +106,20 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             viewModel.isAccessibilityEnabled.collect { enabled ->
-                val text = if (enabled) getString(R.string.accessibility_enabled) else getString(R.string.accessibility_disabled)
-                val colorRes = if (enabled) R.color.status_active else R.color.status_inactive
-                binding.statusText.text = text
-                binding.statusText.setTextColor(getColor(colorRes))
-                binding.statusDot.setBackgroundColor(getColor(colorRes))
+                updateProtectionStatus(enabled)
             }
+        }
+    }
+
+    private fun updateProtectionStatus(enabled: Boolean) {
+        if (enabled) {
+            binding.statusText.text = getString(R.string.accessibility_enabled)
+            binding.statusText.setTextColor(getColor(R.color.status_active))
+            binding.statusIcon.imageTintList = getColorStateList(R.color.status_active)
+        } else {
+            binding.statusText.text = getString(R.string.accessibility_disabled)
+            binding.statusText.setTextColor(getColor(R.color.status_inactive))
+            binding.statusIcon.imageTintList = getColorStateList(R.color.status_inactive)
         }
     }
 
@@ -112,10 +133,9 @@ class MainActivity : AppCompatActivity() {
         viewModel.updateAccessibilityStatus(enabled)
 
         if (!enabled) {
-            Toast.makeText(this, "Enable Accessibility Service in Settings to lock apps", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.enable_accessibility_prompt), Toast.LENGTH_LONG).show()
         }
 
-        // Battery optimization
         try {
             val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !pm.isIgnoringBatteryOptimizations(packageName)) {
@@ -125,12 +145,10 @@ class MainActivity : AppCompatActivity() {
             }
         } catch (_: Exception) { }
 
-        // Notification permission (Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 100)
         }
 
-        // Start foreground service
         startProtectionService()
     }
 

@@ -22,6 +22,18 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
 
+        <!-- Lock badge overlay on icon -->
+        <ImageView
+            android:id="@+id/lock_badge"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:src="@drawable/ic_lock_small"
+            android:layout_marginStart="28dp"
+            android:layout_marginTop="28dp"
+            app:layout_constraintStart_toStartOf="@id/app_icon"
+            app:layout_constraintTop_toTopOf="@id/app_icon"
+            android:importantForAccessibility="no" />
+
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -58,8 +70,7 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:background="@drawable/ripple_glass"
-            android:src="@android:drawable/ic_menu_delete"
-            android:tint="@color/danger"
+            android:src="@drawable/ic_delete"
             android:contentDescription="@string/remove_app"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
